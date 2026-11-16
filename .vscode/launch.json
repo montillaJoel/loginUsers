@@ -1,0 +1,37 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Main (Login)",
+      "request": "launch",
+      "mainClass": "src.app.Main",
+      "cwd": "${workspaceFolder}",
+      "envFile": "${workspaceFolder}/.env"
+    },
+    {
+      "type": "java",
+      "name": "LoginWindow",
+      "request": "launch",
+      "mainClass": "src.view.LoginWindow",
+      "cwd": "${workspaceFolder}",
+      "envFile": "${workspaceFolder}/.env"
+    },
+    {
+      "type": "java",
+      "name": "UserRegistrationWindow",
+      "request": "launch",
+      "mainClass": "src.view.UserRegistrationWindow",
+      "cwd": "${workspaceFolder}",
+      "envFile": "${workspaceFolder}/.env"
+    },
+    {
+      "type": "java",
+      "name": "LoginConsoleTest",
+      "request": "launch",
+      "mainClass": "src.app.LoginConsoleTest",
+      "cwd": "${workspaceFolder}",
+      "envFile": "${workspaceFolder}/.env"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+CREATE DATABASE IF NOT EXISTS loginUsers
+CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+USE loginUsers;
+
+CREATE TABLE IF NOT EXISTS users (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_name VARCHAR(50) NOT NULL UNIQUE,
+    name VARCHAR(80) NOT NULL,
+    last_name VARCHAR(80) NOT NULL,
+    phone_number VARCHAR(30) NOT NULL,
+    email VARCHAR(150) NOT NULL,
+    hash_key VARCHAR(255) NOT NULL
+);

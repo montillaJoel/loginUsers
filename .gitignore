@@ -1,0 +1,12 @@
+# Credenciales locales (nunca subir)
+.env
+
+# Archivos compilados
+*.class
+bin/
+out/
+target/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
