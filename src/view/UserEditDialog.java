@@ -1,6 +1,5 @@
 package src.view;
 
-import src.DAO.DAOMySQL;
 import src.models.User;
 import src.service.UserService;
 
@@ -25,7 +24,7 @@ final class UserEditDialog {
      * @return the saved user if the changes were saved, or {@code null} if cancelled
      */
     static User edit(Window owner, User user) {
-        JDialog dialog = new JDialog(owner, "Editar cliente", JDialog.ModalityType.APPLICATION_MODAL);
+        JDialog dialog = new JDialog(owner, "Actualizar cliente", JDialog.ModalityType.APPLICATION_MODAL);
         JTextField nameField = new JTextField(user.getName(), 22);
         JTextField lastNameField = new JTextField(user.getLastName(), 22);
         JTextField phoneField = new JTextField(user.getPhoneNumber(), 22);
@@ -39,8 +38,8 @@ final class UserEditDialog {
         UiStyle.addRow(form, 0, "Nombre", nameField);
         UiStyle.addRow(form, 1, "Apellido", lastNameField);
         UiStyle.addRow(form, 2, "Teléfono", phoneField);
-        UiStyle.addRow(form, 3, "Email", emailField);
-        UiStyle.addRow(form, 4, "Usuario", usernameField);
+        UiStyle.addRow(form, 3, "Correo electrónico", emailField);
+        UiStyle.addRow(form, 4, "Nombre de usuario", usernameField);
         UiStyle.addRow(form, 5, "Nueva contraseña", passwordField);
 
         UiStyle.stylePrimary(saveButton);
@@ -50,7 +49,7 @@ final class UserEditDialog {
         buttons.add(saveButton);
 
         dialog.setContentPane(UiStyle.content(
-                UiStyle.header("Editar cliente", "Deja la contraseña vacía para no cambiarla."),
+                UiStyle.header("Actualizar cliente", "Deja la contraseña vacía para no cambiarla."),
                 form, buttons));
         dialog.getRootPane().setDefaultButton(saveButton);
 
@@ -62,13 +61,13 @@ final class UserEditDialog {
                     user.getHashKey());
             updated.setId(user.getId());
             try {
-                new UserService(new DAOMySQL())
+                UserService.getInstance()
                         .updateUser(updated, new String(passwordField.getPassword()));
                 result[0] = updated;
                 dialog.dispose();
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(dialog, ex.getMessage(),
-                        "Editar cliente", JOptionPane.ERROR_MESSAGE);
+                        "Actualizar cliente", JOptionPane.ERROR_MESSAGE);
             }
         });
         cancelButton.addActionListener(e -> dialog.dispose());

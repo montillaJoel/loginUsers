@@ -8,11 +8,12 @@ Aplicación de escritorio en **Java (Swing)** para registro e inicio de sesión 
 
 ## Funcionalidades
 
-- **Registro de usuarios** con nombre, apellido, teléfono, correo, usuario y contraseña.
-- **Inicio de sesión** con usuario y contraseña (el usuario no distingue mayúsculas/minúsculas).
-- **Panel principal** con la tabla de usuarios registrados: editar, eliminar y cerrar sesión.
+- **Inicio de sesión** con usuario y contraseña oculta (el usuario no distingue mayúsculas/minúsculas). Si falta algún campo muestra: *"Debe ingresar su usuario y contraseña, si no está registrado debe registrarse."*
+- **Registro de usuarios** con nombre de usuario, nombre, apellido, teléfono, correo, contraseña y confirmación. Todos los campos son obligatorios y el mensaje indica cuál falta. Avisa si la contraseña y la confirmación no coinciden.
+- **Pantalla principal** ("Clientes Registrados") con la tabla de usuarios y los botones **Nuevo**, **Actualizar**, **Eliminar** y **Cerrar sesión**. La tabla se actualiza sola después de cada cambio. También se puede actualizar con doble clic en una fila.
+- **Cerrar sesión** vuelve a la pantalla de login.
 - **Contraseñas seguras:** nunca se guardan en texto plano. Se cifran con **PBKDF2 (HMAC-SHA256)**, 600 000 iteraciones y una *salt* aleatoria por usuario.
-- **Validaciones:** campos obligatorios, correo válido, contraseña de mínimo 6 caracteres, usuario y correo únicos al editar.
+- **Validaciones:** campos obligatorios, correo válido, contraseña de mínimo 6 caracteres, usuario y correo únicos al registrar y al actualizar.
 - **Mensajes de error genéricos** en el login ("usuario o contraseña inválidos") para no revelar qué cuentas existen.
 
 ---
@@ -51,11 +52,29 @@ view  →  service  →  DAO  →  MySQL
 | Capa | Clase | Responsabilidad |
 |------|-------|-----------------|
 | Vista | `LoginWindow`, `UserRegistrationWindow`, `MainWindow`, `UserEditDialog`, `UiStyle` | Interfaz gráfica |
-| Servicio | `UserService` | Validaciones, login, registro, CRUD |
-| Datos | `DAOUser` (interfaz), `DAOMySQL` | Consultas SQL a la tabla `users` |
+| Servicio | `UserService` (Singleton) | Validaciones, login, registro, CRUD |
+| Datos | `DAOUser` (interfaz), `DAOMySQL`, `DAOFactory` (Fábrica) | Consultas SQL a la tabla `users` |
 | Modelo | `Person`, `User` | Datos del usuario |
 | Utilidades | `ConnectionDB` | Abre la conexión leyendo variables de entorno |
 | Utilidades | `SureKeys` | Genera y verifica hashes de contraseñas |
+
+---
+
+## Programación orientada a objetos
+
+| Pilar | Dónde se aplica |
+|-------|-----------------|
+| **Abstracción** | `Person` es una clase abstracta (no se puede instanciar). `DAOUser` es una interfaz que define *qué* operaciones existen sin decir *cómo* se hacen. |
+| **Encapsulamiento** | Todos los atributos de `Person` y `User` son `private` y se acceden con getters/setters que validan los datos. `SureKeys` oculta el algoritmo de cifrado (`pbkdf2` es privado). |
+| **Herencia** | `User extends Person`: hereda nombre, apellido, teléfono, correo y `getFullName()`, y agrega `id`, `userName` y `hashKey`. |
+| **Polimorfismo** | `UserService` trabaja con `DAOUser`, sin saber que la implementación real es `DAOMySQL` (los métodos llevan `@Override`). Además, `updateUser` está sobrecargado: `updateUser(User)` y `updateUser(User, String)`. |
+
+## Patrones de diseño
+
+| Patrón | Clase | Uso |
+|--------|-------|-----|
+| **Singleton** | `UserService` | Constructor privado y una sola instancia compartida, que se obtiene con `UserService.getInstance()`. |
+| **Fábrica (Factory)** | `DAOFactory` | `DAOFactory.createUserDAO()` crea el `DAOUser` que usa la app. Ninguna otra clase hace `new DAOMySQL()`, así que cambiar de base de datos solo requiere tocar la fábrica. |
 
 ---
 

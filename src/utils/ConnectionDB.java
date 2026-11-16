@@ -27,8 +27,8 @@ public final class ConnectionDB {
         // Fail fast with a clear message if the local MySQL configuration is missing
         if (url == null || user == null || password == null) {
             throw new IllegalStateException(
-                "Missing local MySQL configuration: set loginUsers_DB_URL, "
-                + "loginUsers_DB_USUARIO and loginUsers_DB_CLAVE");
+                "Falta la configuración de MySQL: defina loginUsers_DB_URL, "
+                + "loginUsers_DB_USUARIO y loginUsers_DB_CLAVE en el archivo .env");
         }
 
         return DriverManager.getConnection(url, user, password);

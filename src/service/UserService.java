@@ -1,5 +1,6 @@
 package src.service;
 
+import src.DAO.DAOFactory;
 import src.DAO.DAOUser;
 import src.models.User;
 import src.utils.SureKeys;
@@ -8,19 +9,41 @@ import java.util.List;
 /**
  * Business logic for user management: registration, login and CRUD operations.
  * <p>
- * Validates input before delegating persistence to a {@link DAOUser} implementation.
+ * Singleton pattern: the whole app shares one instance, obtained with {@link #getInstance()}.
+ * The DAO it uses comes from {@link DAOFactory}. Messages are in Spanish because they are shown
+ * to the user.
  */
 public class UserService {
+
+    /** Message required by the assignment when the login fields are empty. */
+    public static final String LOGIN_EMPTY_MESSAGE =
+            "Debe ingresar su usuario y contraseña, si no está registrado debe registrarse.";
+
+    private static final int MIN_PASSWORD_LENGTH = 6;
+
+    private static UserService instance;
 
     private final DAOUser userDAO;
 
     /**
-     * Creates the service with the DAO it will use for persistence.
+     * Private constructor: use {@link #getInstance()}.
      *
-     * @param userDAO the data access object injected through the constructor
+     * @param userDAO the data access object used for persistence
      */
-    public UserService(DAOUser userDAO) {
+    private UserService(DAOUser userDAO) {
         this.userDAO = userDAO;
+    }
+
+    /**
+     * Returns the single shared instance, creating it the first time.
+     *
+     * @return the service instance
+     */
+    public static synchronized UserService getInstance() {
+        if (instance == null) {
+            instance = new UserService(DAOFactory.createUserDAO());
+        }
+        return instance;
     }
 
     /**
@@ -32,11 +55,8 @@ public class UserService {
      * @throws Exception if a field is empty, no user matches, or the password does not match
      */
     public User loginUser(String login, String password) throws Exception {
-        if (login == null || login.trim().isEmpty()) {
-            throw new Exception("Enter your username.");
-        }
-        if (password == null || password.isEmpty()) {
-            throw new Exception("Enter your password.");
+        if (isBlank(login) || password == null || password.isEmpty()) {
+            throw new Exception(LOGIN_EMPTY_MESSAGE);
         }
 
         String identifier = login.trim();
@@ -50,7 +70,7 @@ public class UserService {
 
         // Same message for unknown user and wrong password, so nobody can guess which accounts exist
         if (foundUser == null || !SureKeys.verifyPassword(password, foundUser.getHashKey())) {
-            throw new Exception("Invalid username or password.");
+            throw new Exception("Usuario o contraseña incorrectos.");
         }
         return foundUser;
     }
@@ -61,21 +81,27 @@ public class UserService {
      * The user's hash key field is replaced with the hashed password before saving.
      *
      * @param user the user to register, with the plain-text password in its hash key field
-     * @throws Exception if the user is null, the name, last name or username is empty, the email
-     *                   is invalid, the password is shorter than 6 characters, or hashing fails
+     * @throws Exception if a field is missing or invalid, the username or email is taken,
+     *                   or the user could not be saved
      */
     public void registerUser(User user) throws Exception {
         validateData(user);
-        if (user.getHashKey() == null || user.getHashKey().length() < 6) {
-            throw new Exception("The password must have at least 6 characters.");
+        String password = user.getHashKey();
+        if (isBlank(password)) {
+            throw new Exception("El campo \"Contraseña\" es obligatorio.");
         }
+        if (password.length() < MIN_PASSWORD_LENGTH) {
+            throw new Exception("La contraseña debe tener al menos " + MIN_PASSWORD_LENGTH + " caracteres.");
+        }
+        checkUnique(user, -1);
 
         // Hash the password before saving
-        String hashedPassword = SureKeys.generateHashKey(user.getHashKey());
-        user.setHashKey(hashedPassword);
-
-        // Call the DAO to insert the user into the database
+        user.setHashKey(SureKeys.generateHashKey(password));
         userDAO.insert(user);
+
+        if (user.getId() <= 0) {
+            throw new Exception("No se pudo guardar el usuario en la base de datos.");
+        }
     }
 
     /**
@@ -87,11 +113,11 @@ public class UserService {
      */
     public User findUserById(int id) throws Exception {
         if (id <= 0) {
-            throw new Exception("The ID must be greater than zero.");
+            throw new Exception("El ID debe ser mayor que cero.");
         }
         User user = userDAO.getById(id);
         if (user == null) {
-            throw new Exception("User not found.");
+            throw new Exception("Usuario no encontrado.");
         }
         return user;
     }
@@ -116,64 +142,28 @@ public class UserService {
     }
 
     /**
-     * Updates an existing user's data and, optionally, their password.
+     * Updates an existing user's data and, optionally, their password (method overloading).
      *
      * @param user        the user with the new data; their ID identifies the record to update
      *                    and their hash key is kept unless a new password is given
      * @param newPassword the new plain-text password, or {@code null}/empty to keep the current one
      * @throws Exception if the ID is invalid, a field is invalid, the username or email belongs
-     *                   to another user, or the new password is shorter than 6 characters
+     *                   to another user, or the new password is too short
      */
     public void updateUser(User user, String newPassword) throws Exception {
         if (user == null || user.getId() <= 0) {
-            throw new Exception("The user ID is invalid for update.");
+            throw new Exception("El ID del usuario no es válido para actualizar.");
         }
         validateData(user);
-
-        // Username and email must stay unique among the other users
-        for (User other : userDAO.getAll()) {
-            if (other == null || other.getId() == user.getId()) {
-                continue;
-            }
-            if (other.getUserName().equalsIgnoreCase(user.getUserName())) {
-                throw new Exception("The username " + user.getUserName() + " is already taken.");
-            }
-            if (other.getEmail().equalsIgnoreCase(user.getEmail())) {
-                throw new Exception("The email " + user.getEmail() + " is already registered.");
-            }
-        }
+        checkUnique(user, user.getId());
 
         if (newPassword != null && !newPassword.isEmpty()) {
-            if (newPassword.length() < 6) {
-                throw new Exception("The password must have at least 6 characters.");
+            if (newPassword.length() < MIN_PASSWORD_LENGTH) {
+                throw new Exception("La contraseña debe tener al menos " + MIN_PASSWORD_LENGTH + " caracteres.");
             }
             user.setHashKey(SureKeys.generateHashKey(newPassword));
         }
         userDAO.update(user);
-    }
-
-    /**
-     * Checks the fields shared by registration and update: name, last name, email and username.
-     *
-     * @param user the user to check
-     * @throws Exception if the user is null or a field is empty or invalid
-     */
-    private void validateData(User user) throws Exception {
-        if (user == null) {
-            throw new Exception("The user is required.");
-        }
-        if (user.getName() == null || user.getName().trim().isEmpty()) {
-            throw new Exception("The name is required.");
-        }
-        if (user.getLastName() == null || user.getLastName().trim().isEmpty()) {
-            throw new Exception("The last name is required.");
-        }
-        if (user.getEmail() == null || !user.getEmail().contains("@")) {
-            throw new Exception("The email is not valid.");
-        }
-        if (user.getUserName() == null || user.getUserName().trim().isEmpty()) {
-            throw new Exception("The username is required.");
-        }
     }
 
     /**
@@ -184,8 +174,60 @@ public class UserService {
      */
     public void deleteUser(int id) throws Exception {
         if (id <= 0) {
-            throw new Exception("The ID is invalid for deletion.");
+            throw new Exception("El ID no es válido para eliminar.");
         }
         userDAO.delete(id);
+    }
+
+    /**
+     * Checks the fields shared by registration and update, in the same order as the form,
+     * and reports the first missing one by name.
+     *
+     * @param user the user to check
+     * @throws Exception if the user is null or a field is empty or invalid
+     */
+    private void validateData(User user) throws Exception {
+        if (user == null) {
+            throw new Exception("El usuario es obligatorio.");
+        }
+        requireField(user.getUserName(), "Nombre de usuario");
+        requireField(user.getName(), "Nombre");
+        requireField(user.getLastName(), "Apellido");
+        requireField(user.getPhoneNumber(), "Teléfono");
+        requireField(user.getEmail(), "Correo electrónico");
+        if (!user.getEmail().contains("@")) {
+            throw new Exception("El correo electrónico no es válido.");
+        }
+    }
+
+    /**
+     * Makes sure no other user has the same username or email.
+     *
+     * @param user      the user being saved
+     * @param ignoredId the ID to skip (the user's own ID when updating), or -1 when registering
+     * @throws Exception if the username or email is already taken
+     */
+    private void checkUnique(User user, int ignoredId) throws Exception {
+        for (User other : userDAO.getAll()) {
+            if (other == null || other.getId() == ignoredId) {
+                continue;
+            }
+            if (other.getUserName().equalsIgnoreCase(user.getUserName())) {
+                throw new Exception("El nombre de usuario \"" + user.getUserName() + "\" ya está en uso.");
+            }
+            if (other.getEmail().equalsIgnoreCase(user.getEmail())) {
+                throw new Exception("El correo \"" + user.getEmail() + "\" ya está registrado.");
+            }
+        }
+    }
+
+    private static void requireField(String value, String fieldName) throws Exception {
+        if (isBlank(value)) {
+            throw new Exception("El campo \"" + fieldName + "\" es obligatorio.");
+        }
+    }
+
+    private static boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
     }
 }

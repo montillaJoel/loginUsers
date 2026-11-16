@@ -1,7 +1,5 @@
 package src.app;
 
-import src.DAO.DAOMySQL;
-import src.DAO.DAOUser;
 import src.service.UserService;
 import src.models.User;
 
@@ -16,8 +14,7 @@ public class LoginConsoleTest {
         System.out.println(jorge.getFullName() + " - " + jorge.getPhoneNumber());
         System.out.println("ID: " + jorge.getId() + ", Username: " + jorge.getUserName() + ", Hash Key: " + jorge.getHashKey());
 
-        DAOUser dao = new DAOMySQL();
-        UserService userService = new UserService(dao);
+        UserService userService = UserService.getInstance();
 
         // Use the service layer instead of calling the DAO directly.
         // Register Joel only if his email is not in the database yet, so Main can be run several times.

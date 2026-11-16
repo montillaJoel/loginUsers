@@ -1,6 +1,5 @@
 package src.view;
 
-import src.DAO.DAOMySQL;
 import src.models.User;
 import src.service.UserService;
 
@@ -17,14 +16,14 @@ import java.util.List;
 
 /**
  * Window shown after a successful login: a table with all registered users from the database.
- * Users can be edited and deleted; the table reloads from the database after every change.
+ * Users can be added, updated and deleted; the table reloads from the database after every change.
  */
 public class MainWindow {
 
-    private static final String[] COLUMNS = {"Nombre", "Apellido", "Teléfono", "Email", "Usuario"};
+    private static final String[] COLUMNS = {"Nombre", "Apellido", "Teléfono", "Correo electrónico", "Usuario"};
 
     private final JFrame window = new JFrame("Clientes Registrados");
-    private final UserService userService = new UserService(new DAOMySQL());
+    private final UserService userService = UserService.getInstance();
     private final List<User> users = new ArrayList<>();   // same order as the table model rows
     private final JLabel subtitle = new JLabel();
     private final DefaultTableModel model = new DefaultTableModel(COLUMNS, 0) {
@@ -55,16 +54,19 @@ public class MainWindow {
         JScrollPane scroll = new JScrollPane(table);
         scroll.setPreferredSize(new Dimension(720, 300));
 
-        JButton editButton = new JButton("Editar");
+        JButton newButton = new JButton("Nuevo");
+        JButton editButton = new JButton("Actualizar");
         JButton deleteButton = new JButton("Eliminar");
         JButton logoutButton = new JButton("Cerrar sesión");
+        newButton.setFocusPainted(false);
         editButton.setFocusPainted(false);
         deleteButton.setFocusPainted(false);
         UiStyle.stylePrimary(logoutButton);
 
-        // Edit / Delete on the left, Log out on the right
+        // New / Update / Delete on the left, Log out on the right
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         actions.setOpaque(false);
+        actions.add(newButton);
         actions.add(editButton);
         actions.add(deleteButton);
         JPanel buttons = new JPanel(new BorderLayout());
@@ -78,6 +80,7 @@ public class MainWindow {
 
         window.setContentPane(UiStyle.content(header, scroll, buttons));
 
+        newButton.addActionListener(e -> UserRegistrationWindow.open(this::reload));
         editButton.addActionListener(e -> editSelected());
         deleteButton.addActionListener(e -> deleteSelected());
         logoutButton.addActionListener(e -> logout());

@@ -106,10 +106,10 @@ public class DAOMySQL implements DAOUser {
             ps.setString(6, u.getHashKey());
             ps.setInt(7, u.getId());
             if (ps.executeUpdate() == 0) {
-                throw new IllegalStateException("No user with ID " + u.getId() + " was found.");
+                throw new IllegalStateException("No se encontró el usuario con ID " + u.getId() + ".");
             }
         } catch (SQLException e) {
-            throw new IllegalStateException("The user could not be updated: " + e.getMessage(), e);
+            throw new IllegalStateException("No se pudo actualizar el usuario: " + e.getMessage(), e);
         }
     }
 
@@ -120,10 +120,10 @@ public class DAOMySQL implements DAOUser {
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, id);
             if (ps.executeUpdate() == 0) {
-                throw new IllegalStateException("No user with ID " + id + " was found.");
+                throw new IllegalStateException("No se encontró el usuario con ID " + id + ".");
             }
         } catch (SQLException e) {
-            throw new IllegalStateException("The user could not be deleted: " + e.getMessage(), e);
+            throw new IllegalStateException("No se pudo eliminar el usuario: " + e.getMessage(), e);
         }
     }
 }
