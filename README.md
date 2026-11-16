@@ -36,6 +36,8 @@ loginUsers/
 │   ├── service/             # Lógica de negocio (UserService)
 │   ├── utils/               # Conexión a BD y cifrado de contraseñas
 │   └── view/                # Ventanas Swing
+├── videos/
+│   └── demostracion.mp4     # Video de demostración
 ├── .env.example             # Plantilla de configuración de la BD
 ├── docker-compose.yml       # (Opcional) MySQL en Docker
 └── README.md
@@ -203,6 +205,15 @@ Tabla `users`:
 | `Access denied for user` | Usuario o contraseña incorrectos | Revisa `loginUsers_DB_USUARIO` y `loginUsers_DB_CLAVE` |
 | `Unknown database 'loginUsers'` | No se ejecutó `schemas.sql` | Ejecuta el script (paso 3) |
 | `No suitable driver found` | VS Code no encuentra el `.jar` | Abre la carpeta `loginUsers` directamente en VS Code |
+
+---
+
+## Videos
+
+| Video | Contenido | Enlace |
+|-------|-----------|--------|
+| Demostración (2:43 min) | La aplicación en funcionamiento: login, registro, actualizar, eliminar y cerrar sesión | [Ver en Drive](https://drive.google.com/file/d/1ilTWNeOO7jpt1MO-ZyA-k7r-3wOJs2IM/view?usp=sharing) · [archivo en el repo](videos/demostracion.mp4) |
+| Explicación del código (22 min) | Explicación detallada del código, la POO y los patrones de diseño | [Ver video](https://drive.google.com/file/d/1w09qn3AES74N2EXYUP_irSY1Ra-m4g_F/view?usp=sharing) |
 
 ---
 
