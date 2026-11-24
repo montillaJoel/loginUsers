@@ -1,6 +1,10 @@
-# loginUsers
+# loginUsers · Gestión de usuarios con Java Swing
 
-Aplicación de escritorio en **Java (Swing)** para registro e inicio de sesión de usuarios, con base de datos **MySQL**. Incluye un panel para listar, editar y eliminar usuarios registrados.
+Aplicación de escritorio para registrar cuentas, iniciar sesión y administrar usuarios en MySQL. Desde el panel **Clientes Registrados** puedes ordenar la tabla, abrir una ficha con doble clic y agregar, actualizar o eliminar registros.
+
+![Panel Clientes Registrados con tres usuarios de ejemplo y las acciones Nuevo, Actualizar, Eliminar y Cerrar sesión](docs/panel-usuarios.png)
+
+*Vista del panel con datos ficticios.* [Ver la demostración en video](https://drive.google.com/file/d/1ilTWNeOO7jpt1MO-ZyA-k7r-3wOJs2IM/view?usp=sharing) · [Instalación y ejecución](#instalación-y-ejecución)
 
 > **Nota sobre el idioma:** la documentación está en español. El código fuente (clases, métodos, variables y comentarios) está escrito en inglés.
 
@@ -105,7 +109,7 @@ Por eso el archivo `.env` (con tus credenciales reales) **no se sube**, y en su 
 ### 1. Clonar el repositorio
 
 ```bash
-git clone https://github.com/TU_USUARIO/loginUsers.git
+git clone https://github.com/montillaJoel/loginUsers.git
 cd loginUsers
 ```
 
